@@ -8,7 +8,12 @@ function extractLicenseLabels(payload) {
   for (const item of payload) {
     const label = item?.license_type_label
     if (!label) continue
-    result.push({ label: String(label), raw: item })
+
+    result.push({
+      label: String(label),
+      price: item?.price ?? null,
+      raw: item,
+    })
   }
   return result
 }

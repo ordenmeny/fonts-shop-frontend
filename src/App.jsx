@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useFontStyles } from "./hooks/useFontStyles.js"
 import { useLicensesByFace } from "./hooks/useLicensesByFace.js"
 import { addToCart } from "./api/fonts.js"
@@ -15,6 +15,15 @@ function chunkIntoTwoColumns(items) {
 
 export default function App() {
   const pkFont = 1
+
+  useEffect(() => {
+    fetch(new URL("/api/csrf/", import.meta.env.VITE_API_ORIGIN).toString(), {
+    method: "GET",
+    credentials: "include",
+    headers: { Accept: "application/json" },
+    }).catch(() => {})
+  }, [])
+
 
   const {
     payload: licensePayload,
@@ -207,7 +216,8 @@ export default function App() {
                   checked={selectedLicenseIndex === idx}
                   onChange={() => setSelectedLicenseIndex(idx)}
                 />
-                {l.label}
+                <span style={{ flex: 1 }}>{l.label}</span>
+                <span style={{ color: "#111" }}>{l.price}</span>
               </label>
             ))}
           </div>
