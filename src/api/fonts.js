@@ -1,6 +1,9 @@
 import { getJson } from "./http.js"
 import { getCookie } from "./cookies.js"
 
+export function getAllFonts() {
+  return getJson("/api/fonts/all-fonts/")
+}
 
 export function getLicense(pkFont) {
   if (pkFont === null || pkFont === undefined || pkFont === "") {
@@ -13,12 +16,12 @@ export function getLicensesByFace(pkFace) {
   if (pkFace === null || pkFace === undefined || pkFace === "") {
     throw new Error("pkFace is required")
   }
-
-  // ВАЖНО: путь берется ровно из твоего сообщения
-  // Если на бэке окажется префикс /api/fonts/, то поменяем тут одну строку
   return getJson(`/api/fonts/get-licenses-by-face/${pkFace}/`)
 }
 
+export function getCart() {
+  return getJson("/api/fonts/cart/")
+}
 
 export async function addToCart(pkItem) {
   if (pkItem === null || pkItem === undefined || pkItem === "") {
