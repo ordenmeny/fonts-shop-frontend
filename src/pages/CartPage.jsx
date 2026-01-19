@@ -11,7 +11,7 @@ function formatMoney(price, currency) {
   return `${p} ${c}`
 }
 
-export default function CartPage({ onBack, accessToken, onRequireLogin, onOpenOrders }) {
+export default function CartPage({ onBack, accessToken, onRequireLogin, onOpenOrders, onOpenCatalog }) {
   const { items, loading, error, refresh, removeItem, removingIds } = useCart()
   const [creatingOrder, setCreatingOrder] = useState(false)
   const [createError, setCreateError] = useState(null)
@@ -49,8 +49,6 @@ export default function CartPage({ onBack, accessToken, onRequireLogin, onOpenOr
     try {
       const res = await createOrder(accessToken)
       setCreateSuccess(res ?? { ok: true })
-
-      // После оформления заказ часто очищает корзину на бекенде, поэтому делаем refresh.
       refresh().catch(() => {})
     } catch (e) {
       setCreateError(e instanceof Error ? e.message : "Unknown error")
@@ -65,6 +63,25 @@ export default function CartPage({ onBack, accessToken, onRequireLogin, onOpenOr
         <h1 style={{ margin: 0, fontSize: 44, fontWeight: 800, letterSpacing: 0.2 }}>Корзина</h1>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button
+            onClick={onOpenCatalog}
+            disabled={!onOpenCatalog}
+            style={{
+              background: "#fff",
+              color: "#111",
+              border: "1px solid #ddd",
+              padding: "10px 14px",
+              fontSize: 16,
+              cursor: !onOpenCatalog ? "default" : "pointer",
+              borderRadius: 10,
+              whiteSpace: "nowrap",
+              opacity: !onOpenCatalog ? 0.6 : 1,
+            }}
+            title="Каталог шрифтов"
+          >
+            Каталог шрифтов
+          </button>
+
           <button
             onClick={() => {
               setCreateError(null)
@@ -149,32 +166,7 @@ export default function CartPage({ onBack, accessToken, onRequireLogin, onOpenOr
 
         {!loading && error && <div style={{ color: "#b00020" }}>Ошибка загрузки: {error}</div>}
 
-        {!loading && !error && items.length === 0 && (
-          <div style={{ color: "#777" }}>
-            Корзина пустая
-            {onOpenOrders ? (
-              <>
-                {" "}
-                <button
-                  onClick={onOpenOrders}
-                  style={{
-                    marginLeft: 10,
-                    background: "#fff",
-                    color: "#111",
-                    border: "1px solid #ddd",
-                    padding: "8px 12px",
-                    fontSize: 14,
-                    cursor: "pointer",
-                    borderRadius: 10,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  Мои заказы
-                </button>
-              </>
-            ) : null}
-          </div>
-        )}
+        {!loading && !error && items.length === 0 && <div style={{ color: "#777" }}>Корзина пустая</div>}
 
         {!loading && !error && items.length > 0 && (
           <div style={{ maxWidth: 980 }}>

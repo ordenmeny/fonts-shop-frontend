@@ -46,10 +46,10 @@ function calcOrderTotal(order) {
     if (!currency && f?.currency) currency = String(f.currency)
   }
 
-  return { total, currency, hasAny: items.length > 0 }
+  return { total, currency }
 }
 
-export default function OrdersPage({ onBack, accessToken, onRequireLogin }) {
+export default function OrdersPage({ onBack, accessToken, onRequireLogin, onOpenCatalog }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [orders, setOrders] = useState([])
@@ -96,6 +96,25 @@ export default function OrdersPage({ onBack, accessToken, onRequireLogin }) {
         <h1 style={{ margin: 0, fontSize: 44, fontWeight: 800, letterSpacing: 0.2 }}>Мои заказы</h1>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button
+            onClick={onOpenCatalog}
+            disabled={!onOpenCatalog}
+            style={{
+              background: "#fff",
+              color: "#111",
+              border: "1px solid #ddd",
+              padding: "10px 14px",
+              fontSize: 16,
+              cursor: !onOpenCatalog ? "default" : "pointer",
+              borderRadius: 10,
+              whiteSpace: "nowrap",
+              opacity: !onOpenCatalog ? 0.6 : 1,
+            }}
+            title="Каталог шрифтов"
+          >
+            Каталог шрифтов
+          </button>
+
           <button
             onClick={refresh}
             style={{
@@ -148,7 +167,7 @@ export default function OrdersPage({ onBack, accessToken, onRequireLogin }) {
 
               return (
                 <div
-                  key={String(orderId ?? orderNumber ?? Math.random())}
+                  key={String(orderId ?? orderNumber)}
                   style={{
                     border: "1px solid #e6e6e6",
                     borderRadius: 12,
@@ -166,9 +185,7 @@ export default function OrdersPage({ onBack, accessToken, onRequireLogin }) {
                         <div style={{ marginTop: 6, color: "#555", fontSize: 16 }}>Дата: {createdAt}</div>
                       ) : null}
 
-                      <div style={{ marginTop: 6, color: "#555", fontSize: 16 }}>
-                        Позиций: {items.length}
-                      </div>
+                      <div style={{ marginTop: 6, color: "#555", fontSize: 16 }}>Позиций: {items.length}</div>
                     </div>
 
                     <div style={{ textAlign: "right" }}>
@@ -192,7 +209,7 @@ export default function OrdersPage({ onBack, accessToken, onRequireLogin }) {
 
                         return (
                           <div
-                            key={String(id ?? Math.random())}
+                            key={String(id)}
                             style={{
                               border: "1px solid #f0f0f0",
                               borderRadius: 12,
@@ -200,7 +217,14 @@ export default function OrdersPage({ onBack, accessToken, onRequireLogin }) {
                               background: "#fafafa",
                             }}
                           >
-                            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "baseline",
+                                justifyContent: "space-between",
+                                gap: 12,
+                              }}
+                            >
                               <div style={{ fontSize: 18, fontWeight: 800 }}>{fontName || "Шрифт"}</div>
                               <div style={{ fontSize: 16, fontWeight: 800 }}>{formatMoney(price, cur)}</div>
                             </div>
@@ -217,24 +241,6 @@ export default function OrdersPage({ onBack, accessToken, onRequireLogin }) {
                       })}
                     </div>
                   )}
-
-                  <details style={{ marginTop: 12 }}>
-                    <summary style={{ cursor: "pointer", color: "#111" }}>Данные заказа</summary>
-                    <pre
-                      style={{
-                        marginTop: 10,
-                        background: "#fff",
-                        border: "1px solid #eee",
-                        borderRadius: 10,
-                        padding: 12,
-                        overflow: "auto",
-                        fontSize: 13,
-                        color: "#222",
-                      }}
-                    >
-                      {JSON.stringify(o, null, 2)}
-                    </pre>
-                  </details>
                 </div>
               )
             })}

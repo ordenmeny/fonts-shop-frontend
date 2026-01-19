@@ -6,6 +6,7 @@ export default function FontsListPage({
   onOpenLogin,
   onLogout,
   onOpenOrders,
+  onOpenCatalog,
   accessToken,
 }) {
   const { fonts, loading, error } = useAllFonts()
@@ -17,6 +18,25 @@ export default function FontsListPage({
         <h1 style={{ margin: 0, fontSize: 44, fontWeight: 800, letterSpacing: 0.2 }}>Каталог шрифтов</h1>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button
+            onClick={onOpenCatalog}
+            disabled={!onOpenCatalog}
+            style={{
+              background: "#fff",
+              color: "#111",
+              border: "1px solid #ddd",
+              padding: "10px 14px",
+              fontSize: 16,
+              cursor: !onOpenCatalog ? "default" : "pointer",
+              borderRadius: 10,
+              whiteSpace: "nowrap",
+              opacity: !onOpenCatalog ? 0.6 : 1,
+            }}
+            title="Каталог шрифтов"
+          >
+            Каталог шрифтов
+          </button>
+
           <button
             onClick={onOpenCart}
             style={{

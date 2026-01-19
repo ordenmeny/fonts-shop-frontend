@@ -21,6 +21,20 @@ export default function App() {
     }).catch(() => {})
   }, [accessToken])
 
+  function openList() {
+    setView("list")
+    setSelectedFont(null)
+  }
+
+  function openCart() {
+    setView("cart")
+  }
+
+  function openPurchase(font) {
+    setSelectedFont(font)
+    setView("purchase")
+  }
+
   function openLogin(nextView = "list") {
     setReturnView(nextView)
     setView("login")
@@ -38,12 +52,7 @@ export default function App() {
   function onLogout() {
     clearAccessToken()
     setAccessToken(null)
-    setView("list")
-    setSelectedFont(null)
-  }
-
-  function openCart() {
-    setView("cart")
+    openList()
   }
 
   function openOrders() {
@@ -54,18 +63,8 @@ export default function App() {
     setView("orders")
   }
 
-  function openList() {
-    setView("list")
-    setSelectedFont(null)
-  }
-
-  function openPurchase(font) {
-    setSelectedFont(font)
-    setView("purchase")
-  }
-
   if (view === "login") {
-    return <LoginPage onSuccess={onLoginSuccess} onBack={onLoginBack} />
+    return <LoginPage onSuccess={onLoginSuccess} onBack={onLoginBack} onOpenCatalog={openList} />
   }
 
   if (view === "orders") {
@@ -74,6 +73,7 @@ export default function App() {
         accessToken={accessToken}
         onBack={() => setView("list")}
         onRequireLogin={() => openLogin("orders")}
+        onOpenCatalog={openList}
       />
     )
   }
@@ -85,6 +85,7 @@ export default function App() {
         onBack={() => (selectedFont ? setView("purchase") : setView("list"))}
         onRequireLogin={() => openLogin("cart")}
         onOpenOrders={openOrders}
+        onOpenCatalog={openList}
       />
     )
   }
@@ -96,6 +97,7 @@ export default function App() {
         fontName={selectedFont.name}
         onBack={openList}
         onOpenCart={openCart}
+        onOpenCatalog={openList}
       />
     )
   }
@@ -107,6 +109,7 @@ export default function App() {
       onOpenLogin={() => openLogin("list")}
       onLogout={onLogout}
       onOpenOrders={openOrders}
+      onOpenCatalog={openList}
       accessToken={accessToken}
     />
   )

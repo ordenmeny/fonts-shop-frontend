@@ -12,22 +12,12 @@ function chunkIntoTwoColumns(items) {
   return [left, right]
 }
 
-export default function PurchasePage({ pkFont, fontName, onBack, onOpenCart }) {
-  const {
-    payload: licensePayload,
-    styles,
-    loading: stylesLoading,
-    error: stylesError,
-  } = useFontStyles(pkFont)
+export default function PurchasePage({ pkFont, fontName, onBack, onOpenCart, onOpenCatalog }) {
+  const { styles, loading: stylesLoading, error: stylesError } = useFontStyles(pkFont)
 
   const [selectedFace, setSelectedFace] = useState(null)
 
-  const {
-    payload: licensesPayload,
-    licenses,
-    loading: licensesLoading,
-    error: licensesError,
-  } = useLicensesByFace(selectedFace)
+  const { licenses, loading: licensesLoading, error: licensesError } = useLicensesByFace(selectedFace)
 
   const [selectedLicenseIndex, setSelectedLicenseIndex] = useState(null)
 
@@ -78,6 +68,25 @@ export default function PurchasePage({ pkFont, fontName, onBack, onOpenCart }) {
 
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button
+            onClick={onOpenCatalog}
+            disabled={!onOpenCatalog}
+            style={{
+              background: "#fff",
+              color: "#111",
+              border: "1px solid #ddd",
+              padding: "10px 14px",
+              fontSize: 16,
+              cursor: !onOpenCatalog ? "default" : "pointer",
+              borderRadius: 10,
+              whiteSpace: "nowrap",
+              opacity: !onOpenCatalog ? 0.6 : 1,
+            }}
+            title="Каталог шрифтов"
+          >
+            Каталог шрифтов
+          </button>
+
+          <button
             onClick={onOpenCart}
             style={{
               background: "#fff",
@@ -106,7 +115,7 @@ export default function PurchasePage({ pkFont, fontName, onBack, onOpenCart }) {
               whiteSpace: "nowrap",
             }}
           >
-            Назад к списку
+            Назад
           </button>
         </div>
       </div>
@@ -118,9 +127,7 @@ export default function PurchasePage({ pkFont, fontName, onBack, onOpenCart }) {
 
         {!stylesLoading && stylesError && <div style={{ color: "#b00020" }}>Ошибка загрузки: {stylesError}</div>}
 
-        {!stylesLoading && !stylesError && styles.length === 0 && (
-          <div style={{ color: "#777" }}>Начертания не найдены</div>
-        )}
+        {!stylesLoading && !stylesError && styles.length === 0 && <div style={{ color: "#777" }}>Начертания не найдены</div>}
 
         {!stylesLoading && !stylesError && styles.length > 0 && (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 40 }}>
@@ -189,14 +196,10 @@ export default function PurchasePage({ pkFont, fontName, onBack, onOpenCart }) {
         <div style={{ fontSize: 18, color: "#777" }}>Типы лицензий</div>
 
         {selectedFace === null && (
-          <div style={{ marginTop: 12, color: "#777" }}>
-            Выбери начертание, чтобы показать доступные лицензии
-          </div>
+          <div style={{ marginTop: 12, color: "#777" }}>Выбери начертание, чтобы показать доступные лицензии</div>
         )}
 
-        {selectedFace !== null && licensesLoading && (
-          <div style={{ marginTop: 12, color: "#777" }}>Загрузка лицензий...</div>
-        )}
+        {selectedFace !== null && licensesLoading && <div style={{ marginTop: 12, color: "#777" }}>Загрузка лицензий...</div>}
 
         {selectedFace !== null && !licensesLoading && licensesError && (
           <div style={{ marginTop: 12, color: "#b00020" }}>Ошибка загрузки: {licensesError}</div>
@@ -257,38 +260,6 @@ export default function PurchasePage({ pkFont, fontName, onBack, onOpenCart }) {
         {cartLoading && <div style={{ color: "#777" }}>Добавляем в корзину...</div>}
         {!cartLoading && cartError && <div style={{ color: "#b00020" }}>{cartError}</div>}
         {!cartLoading && !cartError && cartSuccess && <div style={{ color: "#1b5e20" }}>Добавлено в корзину</div>}
-      </div>
-
-      <div style={{ marginTop: 26 }}>
-        <div style={{ fontSize: 14, color: "#777", marginBottom: 8 }}>
-          Debug JSON, get-license для pkFont={String(pkFont)}
-        </div>
-        <pre
-          style={{
-            background: "#f5f5f5",
-            padding: 12,
-            borderRadius: 8,
-            overflow: "auto",
-            maxHeight: 360,
-          }}
-        >
-          {licensePayload ? JSON.stringify(licensePayload, null, 2) : "null"}
-        </pre>
-
-        <div style={{ marginTop: 18, fontSize: 14, color: "#777", marginBottom: 8 }}>
-          Debug JSON, get-licenses-by-face для выбранного face
-        </div>
-        <pre
-          style={{
-            background: "#f5f5f5",
-            padding: 12,
-            borderRadius: 8,
-            overflow: "auto",
-            maxHeight: 360,
-          }}
-        >
-          {licensesPayload ? JSON.stringify(licensesPayload, null, 2) : "null"}
-        </pre>
       </div>
     </div>
   )

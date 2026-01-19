@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { loginWithEmailPassword } from "../api/auth.js"
 
-export default function LoginPage({ onSuccess, onBack }) {
+export default function LoginPage({ onSuccess, onBack, onOpenCatalog }) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -33,23 +33,44 @@ export default function LoginPage({ onSuccess, onBack }) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
         <h1 style={{ margin: 0, fontSize: 44, fontWeight: 800, letterSpacing: 0.2 }}>Вход</h1>
 
-        {onBack && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button
-            onClick={onBack}
+            onClick={onOpenCatalog}
+            disabled={!onOpenCatalog}
             style={{
               background: "#fff",
               color: "#111",
               border: "1px solid #ddd",
               padding: "10px 14px",
               fontSize: 16,
-              cursor: "pointer",
+              cursor: !onOpenCatalog ? "default" : "pointer",
               borderRadius: 10,
               whiteSpace: "nowrap",
+              opacity: !onOpenCatalog ? 0.6 : 1,
             }}
+            title="Каталог шрифтов"
           >
-            Назад
+            Каталог шрифтов
           </button>
-        )}
+
+          {onBack && (
+            <button
+              onClick={onBack}
+              style={{
+                background: "#fff",
+                color: "#111",
+                border: "1px solid #ddd",
+                padding: "10px 14px",
+                fontSize: 16,
+                cursor: "pointer",
+                borderRadius: 10,
+                whiteSpace: "nowrap",
+              }}
+            >
+              Назад
+            </button>
+          )}
+        </div>
       </div>
 
       <div style={{ marginTop: 12, fontSize: 18, color: "#777", maxWidth: 720 }}>
