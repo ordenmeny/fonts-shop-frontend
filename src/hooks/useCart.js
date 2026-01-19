@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { getCart } from "../api/fonts.js"
+import { getCart, removeFromCart } from "../api/fonts.js"
 
 function normalizeCart(payload) {
   const items = payload?.items
@@ -21,6 +21,7 @@ export function useCart() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [removingIds, setRemovingIds] = useState(() => new Set())
 
   async function refresh() {
     setLoading(true)
@@ -41,5 +42,38 @@ export function useCart() {
     refresh()
   }, [])
 
-  return { payload, items, loading, error, refresh }
+  async function removeItem(pkItem) {
+    if (pkItem === null || pkItem === undefined || pkItem === "") {
+      throw new Error("pkItem is required")
+    }
+
+    setRemovingIds((prev) => {
+      const next = new Set(prev)
+      next.add(pkItem)
+      return next
+    })
+
+    try {
+      await removeFromCart(pkItem)
+
+      setPayload((prev) => {
+        const prevItems = prev?.items
+        if (!Array.isArray(prevItems)) return prev
+        return { ...prev, items: prevItems.filter((x) => x?.id !== pkItem) }
+      })
+
+      setItems((prev) => prev.filter((x) => x?.id !== pkItem))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unknown error")
+      throw e
+    } finally {
+      setRemovingIds((prev) => {
+        const next = new Set(prev)
+        next.delete(pkItem)
+        return next
+      })
+    }
+  }
+
+  return { payload, items, loading, error, refresh, removeItem, removingIds }
 }

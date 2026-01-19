@@ -52,3 +52,33 @@ export async function addToCart(pkItem) {
 
   return null
 }
+
+export async function removeFromCart(pkItem) {
+  if (pkItem === null || pkItem === undefined || pkItem === "") {
+    throw new Error("pkItem is required")
+  }
+
+  const csrfToken = getCookie("csrftoken")
+  if (!csrfToken) {
+    throw new Error("CSRF token missing: cookie 'csrftoken' not found. Open the page and refresh once.")
+  }
+
+  const url = `/api/fonts/remove-from-cart/${pkItem}/`
+  const fullUrl = new URL(url, import.meta.env.VITE_API_ORIGIN).toString()
+
+  const res = await fetch(fullUrl, {
+    method: "DELETE",
+    headers: {
+      Accept: "application/json",
+      "X-CSRFToken": csrfToken,
+    },
+    credentials: "include",
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "")
+    throw new Error(`HTTP ${res.status} ${res.statusText}${text ? `, ${text}` : ""}`)
+  }
+
+  return null
+}

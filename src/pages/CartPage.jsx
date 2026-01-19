@@ -11,7 +11,7 @@ function formatMoney(price, currency) {
 }
 
 export default function CartPage({ onBack }) {
-  const { items, loading, error, refresh } = useCart()
+  const { items, loading, error, refresh, removeItem, removingIds } = useCart()
 
   const total = useMemo(() => {
     let sum = 0
@@ -89,7 +89,34 @@ export default function CartPage({ onBack }) {
                     background: "#fff",
                   }}
                 >
-                  <div style={{ fontSize: 22, fontWeight: 750 }}>{x.font_name}</div>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14 }}>
+                    <div style={{ fontSize: 22, fontWeight: 750 }}>{x.font_name}</div>
+
+                    <button
+                      onClick={() => {
+                        if (x.id === null || x.id === undefined || x.id === "") return
+                        removeItem(x.id).catch(() => {})
+                      }}
+                      disabled={loading || (x.id !== null && x.id !== undefined && x.id !== "" && removingIds.has(x.id))}
+                      style={{
+                        background: "#fff",
+                        color: "#111",
+                        border: "1px solid #ddd",
+                        padding: "10px 14px",
+                        fontSize: 16,
+                        cursor: loading ? "default" : "pointer",
+                        borderRadius: 10,
+                        whiteSpace: "nowrap",
+                        opacity:
+                          loading || (x.id !== null && x.id !== undefined && x.id !== "" && removingIds.has(x.id))
+                            ? 0.6
+                            : 1,
+                      }}
+                      title={x.id === null || x.id === undefined || x.id === "" ? "Невозможно удалить: неизвестный id" : "Удалить из корзины"}
+                    >
+                      {x.id !== null && x.id !== undefined && x.id !== "" && removingIds.has(x.id) ? "Удаление..." : "Удалить"}
+                    </button>
+                  </div>
 
                   <div style={{ marginTop: 6, color: "#555", fontSize: 16 }}>
                     Начертание: {x.style_name}
