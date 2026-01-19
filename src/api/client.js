@@ -1,3 +1,5 @@
+import { getAuthHeader } from "./auth.js"
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/"
 
 function joinUrl(base, path) {
@@ -9,9 +11,11 @@ function joinUrl(base, path) {
 export async function apiGet(path) {
   const url = joinUrl(BASE_URL, path)
 
+  const authHeader = getAuthHeader()
+
   const res = await fetch(url, {
     method: "GET",
-    headers: { Accept: "application/json" },
+    headers: { Accept: "application/json", ...authHeader },
     credentials: "include",
   })
 

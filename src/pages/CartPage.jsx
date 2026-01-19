@@ -1,5 +1,6 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useCart } from "../hooks/useCart.js"
+import { createOrder } from "../api/orders.js"
 
 function formatMoney(price, currency) {
   const p = String(price ?? "").trim()
@@ -10,8 +11,11 @@ function formatMoney(price, currency) {
   return `${p} ${c}`
 }
 
-export default function CartPage({ onBack }) {
+export default function CartPage({ onBack, accessToken, onRequireLogin, onOpenOrders }) {
   const { items, loading, error, refresh, removeItem, removingIds } = useCart()
+  const [creatingOrder, setCreatingOrder] = useState(false)
+  const [createError, setCreateError] = useState(null)
+  const [createSuccess, setCreateSuccess] = useState(null)
 
   const total = useMemo(() => {
     let sum = 0
@@ -28,6 +32,32 @@ export default function CartPage({ onBack }) {
   }, [items])
 
   const currency = items.length > 0 ? items[0].currency : ""
+  const canCreateOrder = !loading && !creatingOrder && items.length > 0
+
+  async function onCreateOrder() {
+    setCreateError(null)
+    setCreateSuccess(null)
+
+    if (!accessToken) {
+      onRequireLogin?.()
+      return
+    }
+
+    if (!canCreateOrder) return
+
+    setCreatingOrder(true)
+    try {
+      const res = await createOrder(accessToken)
+      setCreateSuccess(res ?? { ok: true })
+
+      // После оформления заказ часто очищает корзину на бекенде, поэтому делаем refresh.
+      refresh().catch(() => {})
+    } catch (e) {
+      setCreateError(e instanceof Error ? e.message : "Unknown error")
+    } finally {
+      setCreatingOrder(false)
+    }
+  }
 
   return (
     <div style={{ padding: 28, fontFamily: "system-ui, Arial", color: "#111" }}>
@@ -36,7 +66,11 @@ export default function CartPage({ onBack }) {
 
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button
-            onClick={refresh}
+            onClick={() => {
+              setCreateError(null)
+              setCreateSuccess(null)
+              refresh()
+            }}
             style={{
               background: "#fff",
               color: "#111",
@@ -69,12 +103,78 @@ export default function CartPage({ onBack }) {
         </div>
       </div>
 
+      <div style={{ marginTop: 14, maxWidth: 980 }}>
+        {createError && <div style={{ color: "#b00020" }}>Ошибка оформления: {createError}</div>}
+
+        {createSuccess && (
+          <div
+            style={{
+              marginTop: createError ? 10 : 0,
+              border: "1px solid #dfeee0",
+              background: "#f6fff7",
+              borderRadius: 12,
+              padding: 14,
+              color: "#1b5e20",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <div style={{ fontSize: 16, fontWeight: 700 }}>Заказ успешно оформлен</div>
+
+            {onOpenOrders ? (
+              <button
+                onClick={onOpenOrders}
+                style={{
+                  background: "#fff",
+                  color: "#111",
+                  border: "1px solid #ddd",
+                  padding: "10px 14px",
+                  fontSize: 16,
+                  cursor: "pointer",
+                  borderRadius: 10,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Перейти в "Мои заказы"
+              </button>
+            ) : null}
+          </div>
+        )}
+      </div>
+
       <div style={{ marginTop: 18 }}>
         {loading && <div style={{ color: "#777" }}>Загрузка корзины...</div>}
 
         {!loading && error && <div style={{ color: "#b00020" }}>Ошибка загрузки: {error}</div>}
 
-        {!loading && !error && items.length === 0 && <div style={{ color: "#777" }}>Корзина пустая</div>}
+        {!loading && !error && items.length === 0 && (
+          <div style={{ color: "#777" }}>
+            Корзина пустая
+            {onOpenOrders ? (
+              <>
+                {" "}
+                <button
+                  onClick={onOpenOrders}
+                  style={{
+                    marginLeft: 10,
+                    background: "#fff",
+                    color: "#111",
+                    border: "1px solid #ddd",
+                    padding: "8px 12px",
+                    fontSize: 14,
+                    cursor: "pointer",
+                    borderRadius: 10,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Мои заказы
+                </button>
+              </>
+            ) : null}
+          </div>
+        )}
 
         {!loading && !error && items.length > 0 && (
           <div style={{ maxWidth: 980 }}>
@@ -95,6 +195,8 @@ export default function CartPage({ onBack }) {
                     <button
                       onClick={() => {
                         if (x.id === null || x.id === undefined || x.id === "") return
+                        setCreateError(null)
+                        setCreateSuccess(null)
                         removeItem(x.id).catch(() => {})
                       }}
                       disabled={loading || (x.id !== null && x.id !== undefined && x.id !== "" && removingIds.has(x.id))}
@@ -112,19 +214,20 @@ export default function CartPage({ onBack }) {
                             ? 0.6
                             : 1,
                       }}
-                      title={x.id === null || x.id === undefined || x.id === "" ? "Невозможно удалить: неизвестный id" : "Удалить из корзины"}
+                      title={
+                        x.id === null || x.id === undefined || x.id === ""
+                          ? "Невозможно удалить: неизвестный id"
+                          : "Удалить из корзины"
+                      }
                     >
-                      {x.id !== null && x.id !== undefined && x.id !== "" && removingIds.has(x.id) ? "Удаление..." : "Удалить"}
+                      {x.id !== null && x.id !== undefined && x.id !== "" && removingIds.has(x.id)
+                        ? "Удаление..."
+                        : "Удалить"}
                     </button>
                   </div>
 
-                  <div style={{ marginTop: 6, color: "#555", fontSize: 16 }}>
-                    Начертание: {x.style_name}
-                  </div>
-
-                  <div style={{ marginTop: 6, color: "#555", fontSize: 16 }}>
-                    Лицензия: {x.license_type_label}
-                  </div>
+                  <div style={{ marginTop: 6, color: "#555", fontSize: 16 }}>Начертание: {x.style_name}</div>
+                  <div style={{ marginTop: 6, color: "#555", fontSize: 16 }}>Лицензия: {x.license_type_label}</div>
 
                   <div style={{ marginTop: 10, fontSize: 18, fontWeight: 700 }}>
                     {formatMoney(x.price, x.currency)}
@@ -134,10 +237,52 @@ export default function CartPage({ onBack }) {
             </div>
 
             <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #eee" }}>
-              <div style={{ fontSize: 18, color: "#777" }}>Итого</div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
+                <div>
+                  <div style={{ fontSize: 18, color: "#777" }}>Итого</div>
+                  <div style={{ marginTop: 6, fontSize: 24, fontWeight: 800 }}>
+                    {total === null ? "0" : formatMoney(total.toFixed(2), currency)}
+                  </div>
+                </div>
 
-              <div style={{ marginTop: 6, fontSize: 24, fontWeight: 800 }}>
-                {total === null ? "0" : formatMoney(total.toFixed(2), currency)}
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  {onOpenOrders && (
+                    <button
+                      onClick={onOpenOrders}
+                      style={{
+                        background: "#fff",
+                        color: "#111",
+                        border: "1px solid #ddd",
+                        padding: "10px 14px",
+                        fontSize: 16,
+                        cursor: "pointer",
+                        borderRadius: 10,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Мои заказы
+                    </button>
+                  )}
+
+                  <button
+                    onClick={onCreateOrder}
+                    disabled={!canCreateOrder}
+                    style={{
+                      background: "#111",
+                      color: "#fff",
+                      border: "none",
+                      padding: "10px 14px",
+                      fontSize: 16,
+                      cursor: !canCreateOrder ? "default" : "pointer",
+                      borderRadius: 10,
+                      whiteSpace: "nowrap",
+                      opacity: !canCreateOrder ? 0.6 : 1,
+                    }}
+                    title={!accessToken ? "Требуется вход" : "Оформить заказ"}
+                  >
+                    {creatingOrder ? "Оформляем..." : "Оформить заказ"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

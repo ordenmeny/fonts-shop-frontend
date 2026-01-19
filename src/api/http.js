@@ -1,3 +1,5 @@
+import { getAuthHeader } from "./auth.js"
+
 const ORIGIN = import.meta.env.VITE_API_ORIGIN
 
 function isAbsoluteUrl(value) {
@@ -15,9 +17,11 @@ function buildUrl(input) {
 export async function getJson(urlOrPath) {
   const url = buildUrl(urlOrPath)
 
+  const authHeader = getAuthHeader()
+
   const res = await fetch(url, {
     method: "GET",
-    headers: { Accept: "application/json" },
+    headers: { Accept: "application/json", ...authHeader },
     credentials: "include",
   })
 

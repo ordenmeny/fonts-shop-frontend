@@ -1,5 +1,6 @@
 import { getJson } from "./http.js"
 import { getCookie } from "./cookies.js"
+import { getAuthHeader } from "./auth.js"
 
 export function getAllFonts() {
   return getJson("/api/fonts/all-fonts/")
@@ -35,12 +36,14 @@ export async function addToCart(pkItem) {
 
   const url = `/api/fonts/add-to-cart/${pkItem}/`
   const fullUrl = new URL(url, import.meta.env.VITE_API_ORIGIN).toString()
+  const authHeader = getAuthHeader()
 
   const res = await fetch(fullUrl, {
     method: "POST",
     headers: {
       Accept: "application/json",
       "X-CSRFToken": csrfToken,
+      ...authHeader,
     },
     credentials: "include",
   })
@@ -65,12 +68,14 @@ export async function removeFromCart(pkItem) {
 
   const url = `/api/fonts/remove-from-cart/${pkItem}/`
   const fullUrl = new URL(url, import.meta.env.VITE_API_ORIGIN).toString()
+  const authHeader = getAuthHeader()
 
   const res = await fetch(fullUrl, {
     method: "DELETE",
     headers: {
       Accept: "application/json",
       "X-CSRFToken": csrfToken,
+      ...authHeader,
     },
     credentials: "include",
   })
